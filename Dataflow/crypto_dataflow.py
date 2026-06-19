@@ -1,0 +1,1 @@
+print("Dataflow pipeline started")
