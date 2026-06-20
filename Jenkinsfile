@@ -14,25 +14,31 @@ pipeline {
 
         }
 
-        stage('Verify Files') {
+        stage('Deploy DAG') {
 
             steps {
 
-                bat 'dir'
+                bat 'copy dags\\crypto_dag.py C:\\Users\\ADMIN\\Desktop\\airflow-project\\dags'
 
             }
 
         }
 
-        stage('Deploy DAG') {
+        stage('Deploy Publisher') {
 
             steps {
 
-                bat '''
+                bat 'xcopy publisher C:\\Users\\ADMIN\\Desktop\\airflow-project\\publisher /E /Y'
 
-                copy dags\\crypto_dag.py C:\\Users\\ADMIN\\Desktop\\airflow-project\\dags
+            }
 
-                '''
+        }
+
+        stage('Deploy Dataflow') {
+
+            steps {
+
+                bat 'xcopy Dataflow C:\\Users\\ADMIN\\Desktop\\airflow-project\\Dataflow /E /Y'
 
             }
 
