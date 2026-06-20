@@ -27,7 +27,7 @@ with DAG(
 
         bash_command='''
 
-        cd /opt/airflow/dags/publisher
+        cp /opt/airflow/dags/publisher
 
         python crypto_publisher.py
 
