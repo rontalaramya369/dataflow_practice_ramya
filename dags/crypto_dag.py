@@ -5,6 +5,7 @@ from airflow.operators.bash import BashOperator
 from datetime import datetime
 
 
+
 with DAG(
 
     dag_id='crypto_pipeline',
@@ -18,10 +19,39 @@ with DAG(
 ) as dag:
 
 
-    hello = BashOperator(
 
-        task_id='hello',
+    run_publisher = BashOperator(
 
-        bash_command='echo "Airflow DAG Running Successfully"'
+        task_id='run_publisher',
+
+
+        bash_command='''
+
+        cd /opt/airflow/dags/publisher
+
+        python crypto_publisher.py
+
+        '''
 
     )
+
+
+
+    run_dataflow = BashOperator(
+
+        task_id='run_dataflow',
+
+
+        bash_command='''
+
+        cd /opt/airflow/dags/Dataflow
+
+        python crypto_dataflow.py
+
+        '''
+
+    )
+
+
+
+    run_publisher >> run_dataflow
