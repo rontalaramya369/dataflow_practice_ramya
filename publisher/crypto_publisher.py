@@ -6,9 +6,7 @@ from google.cloud import pubsub_v1
 
 
 project_id = "project-8a611ce5-dc75-4904-b12"
-
 topic_id = "crypto-topic"
-
 
 publisher = pubsub_v1.PublisherClient()
 
@@ -16,7 +14,6 @@ topic_path = publisher.topic_path(
     project_id,
     topic_id
 )
-
 
 url = "https://jsonplaceholder.typicode.com/users"
 

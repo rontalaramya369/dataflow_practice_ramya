@@ -2,25 +2,29 @@ import apache_beam as beam
 
 from apache_beam.options.pipeline_options import PipelineOptions
 
+from apache_beam.io.gcp.pubsub import ReadFromPubSub
+
+from apache_beam.io.gcp.bigquery import WriteToBigQuery
+
 import json
 
 
 
 project_id = "project-8a611ce5-dc75-4904-b12"
 
-subscription = "crypto-sub"
+subscription = f"projects/{project_id}/subscriptions/crypto-sub"
 
-dataset = "crypto_dataset"
-
-table = "crypto_table"
+table_id = f"{project_id}:crypto_dataset.crypto_table"
 
 
 
-class ParseMessage(beam.DoFn):
+class ParseJson(beam.DoFn):
 
     def process(self, element):
 
-        record = json.loads(element.decode("utf-8"))
+        record = json.loads(
+            element.decode("utf-8")
+        )
 
         yield {
 
@@ -60,79 +64,77 @@ class ParseMessage(beam.DoFn):
 
 
 
-pipeline_options = PipelineOptions(streaming=True)
+table_schema = {
+
+    "fields":[
+
+        {"name":"id","type":"INTEGER"},
+
+        {"name":"name","type":"STRING"},
+
+        {"name":"username","type":"STRING"},
+
+        {"name":"email","type":"STRING"},
+
+        {"name":"street","type":"STRING"},
+
+        {"name":"suite","type":"STRING"},
+
+        {"name":"city","type":"STRING"},
+
+        {"name":"zipcode","type":"STRING"},
+
+        {"name":"latitude","type":"STRING"},
+
+        {"name":"longitude","type":"STRING"},
+
+        {"name":"phone","type":"STRING"},
+
+        {"name":"website","type":"STRING"},
+
+        {"name":"company_name","type":"STRING"},
+
+        {"name":"company_phrase","type":"STRING"},
+
+        {"name":"company_bs","type":"STRING"},
+
+        {"name":"ingestion_time","type":"TIMESTAMP"}
+
+    ]
+
+}
 
 
 
-with beam.Pipeline(options=pipeline_options) as p:
+options = PipelineOptions(
+    streaming=True
+)
 
+
+with beam.Pipeline(options=options) as p:
 
 
     (
 
         p
 
-        | "Read PubSub"
+        | "Read From PubSub"
 
-        >> beam.io.ReadFromPubSub(
-
-            subscription=f"projects/{project_id}/subscriptions/{subscription}"
-
+        >> ReadFromPubSub(
+            subscription=subscription
         )
 
+        | "Parse Json"
 
+        >> beam.ParDo(ParseJson())
 
-        | "Parse JSON"
+        | "Write To BigQuery"
 
-        >> beam.ParDo(ParseMessage())
+        >> WriteToBigQuery(
 
+            table=table_id,
 
-
-        | "Write BigQuery"
-
-        >> beam.io.WriteToBigQuery(
-
-            table=f"{project_id}:{dataset}.{table}",
-
-
-
-            schema="""
-
-            id:INTEGER,
-
-            name:STRING,
-
-            username:STRING,
-
-            email:STRING,
-
-            street:STRING,
-
-            suite:STRING,
-
-            city:STRING,
-
-            zipcode:STRING,
-
-            latitude:STRING,
-
-            longitude:STRING,
-
-            phone:STRING,
-
-            website:STRING,
-
-            company_name:STRING,
-
-            company_phrase:STRING,
-
-            company_bs:STRING,
-
-            ingestion_time:TIMESTAMP
-
-            """,
-
-
+            schema=table_schema,
 
             write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND,
 

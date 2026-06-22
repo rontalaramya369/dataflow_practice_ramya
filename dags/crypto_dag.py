@@ -2,15 +2,17 @@ from airflow import DAG
 
 from airflow.operators.bash import BashOperator
 
+from airflow.operators.empty import EmptyOperator
+
 from datetime import datetime
 
 
 
 default_args = {
 
-    "owner": "airflow",
+    "owner":"airflow",
 
-    "depends_on_past": False
+    "depends_on_past":False
 
 }
 
@@ -28,13 +30,21 @@ with DAG(
 
     catchup=False,
 
-    tags=["pubsub","dataflow","bigquery"]
+    tags=["streaming","pubsub","dataflow","bigquery"]
 
 ) as dag:
 
 
 
-    run_publisher = BashOperator(
+    start=EmptyOperator(
+
+        task_id="start"
+
+    )
+
+
+
+    run_publisher=BashOperator(
 
         task_id="run_publisher",
 
@@ -42,7 +52,11 @@ with DAG(
 
         echo "Starting Publisher"
 
-        python /opt/airflow/publisher/crypto_publisher.py
+        nohup python /opt/airflow/publisher/crypto_publisher.py > /tmp/publisher.log 2>&1 &
+
+        sleep 20
+
+        echo "Publisher Started"
 
         """
 
@@ -50,7 +64,7 @@ with DAG(
 
 
 
-    run_dataflow = BashOperator(
+    run_dataflow=BashOperator(
 
         task_id="run_dataflow",
 
@@ -58,7 +72,9 @@ with DAG(
 
         echo "Starting Dataflow"
 
-        python /opt/airflow/Dataflow/crypto_dataflow.py
+        nohup python /opt/airflow/Dataflow/crypto_dataflow.py > /tmp/dataflow.log 2>&1 &
+
+        echo "Dataflow Started"
 
         """
 
@@ -66,4 +82,4 @@ with DAG(
 
 
 
-    run_publisher >> run_dataflow
+    start >> run_publisher >> run_dataflow
