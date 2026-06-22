@@ -1,12 +1,19 @@
 from airflow import DAG
+
 from airflow.operators.bash import BashOperator
+
 from datetime import datetime
 
 
+
 default_args = {
+
     "owner": "airflow",
+
     "depends_on_past": False
+
 }
+
 
 
 with DAG(
@@ -15,15 +22,16 @@ with DAG(
 
     default_args=default_args,
 
-    start_date=datetime(2026, 6, 20),
+    start_date=datetime(2026,6,20),
 
     schedule=None,
 
     catchup=False,
 
-    tags=["crypto", "pubsub", "dataflow", "bigquery"]
+    tags=["pubsub","dataflow","bigquery"]
 
 ) as dag:
+
 
 
     run_publisher = BashOperator(
@@ -32,7 +40,7 @@ with DAG(
 
         bash_command="""
 
-        echo "Starting Crypto Publisher"
+        echo "Starting Publisher"
 
         python /opt/airflow/publisher/crypto_publisher.py
 
@@ -41,19 +49,21 @@ with DAG(
     )
 
 
+
     run_dataflow = BashOperator(
 
         task_id="run_dataflow",
 
         bash_command="""
 
-        echo "Starting Dataflow Streaming Job"
+        echo "Starting Dataflow"
 
         python /opt/airflow/Dataflow/crypto_dataflow.py
 
         """
 
     )
+
 
 
     run_publisher >> run_dataflow

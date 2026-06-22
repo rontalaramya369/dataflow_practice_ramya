@@ -2,18 +2,18 @@ import apache_beam as beam
 
 from apache_beam.options.pipeline_options import PipelineOptions
 
-from apache_beam.io.gcp.pubsub import ReadFromPubSub
-
-from apache_beam.io.gcp.bigquery import WriteToBigQuery
-
 import json
+
 
 
 project_id = "project-8a611ce5-dc75-4904-b12"
 
-subscription = f"projects/{project_id}/subscriptions/crypto-sub"
+subscription = "crypto-sub"
 
-table_id = f"{project_id}:crypto_dataset.crypto_table"
+dataset = "crypto_dataset"
+
+table = "crypto_table"
+
 
 
 class ParseMessage(beam.DoFn):
@@ -24,98 +24,115 @@ class ParseMessage(beam.DoFn):
 
         yield {
 
+            "id": record.get("id"),
+
             "name": record.get("name"),
 
-            "official_name": record.get("official_name"),
+            "username": record.get("username"),
 
-            "capital": record.get("capital"),
+            "email": record.get("email"),
 
-            "region": record.get("region"),
+            "street": record.get("street"),
 
-            "subregion": record.get("subregion"),
+            "suite": record.get("suite"),
 
-            "population": record.get("population"),
+            "city": record.get("city"),
 
-            "area": record.get("area"),
+            "zipcode": record.get("zipcode"),
 
-            "independent": record.get("independent"),
+            "latitude": record.get("latitude"),
 
-            "cca2": record.get("cca2"),
+            "longitude": record.get("longitude"),
 
-            "cca3": record.get("cca3"),
+            "phone": record.get("phone"),
 
-            "status": record.get("status"),
+            "website": record.get("website"),
 
-            "un_member": record.get("un_member"),
+            "company_name": record.get("company_name"),
+
+            "company_phrase": record.get("company_phrase"),
+
+            "company_bs": record.get("company_bs"),
 
             "ingestion_time": record.get("ingestion_time")
 
         }
 
 
-schema = """
 
-name:STRING,
-
-official_name:STRING,
-
-capital:STRING,
-
-region:STRING,
-
-subregion:STRING,
-
-population:INTEGER,
-
-area:FLOAT,
-
-independent:BOOLEAN,
-
-cca2:STRING,
-
-cca3:STRING,
-
-status:STRING,
-
-un_member:BOOLEAN,
-
-ingestion_time:TIMESTAMP
-
-"""
+pipeline_options = PipelineOptions(streaming=True)
 
 
-pipeline_options = PipelineOptions(
 
-    streaming=True,
-
-    project=project_id,
-
-    save_main_session=True
-
-)
+with beam.Pipeline(options=pipeline_options) as p:
 
 
-with beam.Pipeline(options=pipeline_options) as pipeline:
 
     (
 
-        pipeline
+        p
 
-        | "Read From PubSub"
+        | "Read PubSub"
 
-        >> ReadFromPubSub(subscription=subscription)
+        >> beam.io.ReadFromPubSub(
 
-        | "Parse Json"
+            subscription=f"projects/{project_id}/subscriptions/{subscription}"
+
+        )
+
+
+
+        | "Parse JSON"
 
         >> beam.ParDo(ParseMessage())
 
-        | "Write To BigQuery"
 
-        >> WriteToBigQuery(
 
-            table=table_id,
+        | "Write BigQuery"
 
-            schema=schema,
+        >> beam.io.WriteToBigQuery(
+
+            table=f"{project_id}:{dataset}.{table}",
+
+
+
+            schema="""
+
+            id:INTEGER,
+
+            name:STRING,
+
+            username:STRING,
+
+            email:STRING,
+
+            street:STRING,
+
+            suite:STRING,
+
+            city:STRING,
+
+            zipcode:STRING,
+
+            latitude:STRING,
+
+            longitude:STRING,
+
+            phone:STRING,
+
+            website:STRING,
+
+            company_name:STRING,
+
+            company_phrase:STRING,
+
+            company_bs:STRING,
+
+            ingestion_time:TIMESTAMP
+
+            """,
+
+
 
             write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND,
 

@@ -12,47 +12,54 @@ topic_id = "crypto-topic"
 
 publisher = pubsub_v1.PublisherClient()
 
-topic_path = publisher.topic_path(project_id, topic_id)
+topic_path = publisher.topic_path(
+    project_id,
+    topic_id
+)
 
 
-url = "https://restcountries.com/v3.1/all"
+url = "https://jsonplaceholder.typicode.com/users"
 
 
 while True:
 
     response = requests.get(url)
 
-    countries = response.json()
+    users = response.json()
 
-    for country in countries:
+    for user in users:
 
         message = {
 
-            "name": country.get("name", {}).get("common"),
+            "id": user.get("id"),
 
-            "official_name": country.get("name", {}).get("official"),
+            "name": user.get("name"),
 
-            "capital": country.get("capital", [None])[0]
-            if country.get("capital")
-            else None,
+            "username": user.get("username"),
 
-            "region": country.get("region"),
+            "email": user.get("email"),
 
-            "subregion": country.get("subregion"),
+            "street": user.get("address", {}).get("street"),
 
-            "population": country.get("population"),
+            "suite": user.get("address", {}).get("suite"),
 
-            "area": country.get("area"),
+            "city": user.get("address", {}).get("city"),
 
-            "independent": country.get("independent"),
+            "zipcode": user.get("address", {}).get("zipcode"),
 
-            "cca2": country.get("cca2"),
+            "latitude": user.get("address", {}).get("geo", {}).get("lat"),
 
-            "cca3": country.get("cca3"),
+            "longitude": user.get("address", {}).get("geo", {}).get("lng"),
 
-            "status": country.get("status"),
+            "phone": user.get("phone"),
 
-            "un_member": country.get("unMember"),
+            "website": user.get("website"),
+
+            "company_name": user.get("company", {}).get("name"),
+
+            "company_phrase": user.get("company", {}).get("catchPhrase"),
+
+            "company_bs": user.get("company", {}).get("bs"),
 
             "ingestion_time": datetime.utcnow().isoformat()
 
@@ -65,6 +72,6 @@ while True:
 
         print(message)
 
-    print("Sleeping for 60 seconds...")
+    print("Sleeping for 60 seconds")
 
     time.sleep(60)

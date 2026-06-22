@@ -18,9 +18,8 @@ pipeline {
 
             steps {
 
-                bat '''
-                copy /Y dags\\crypto_dag.py C:\\Users\\ADMIN\\Desktop\\airflow-project\\dags
-                '''
+                bat 'copy dags\\crypto_dag.py C:\\Users\\ADMIN\\Desktop\\airflow-project\\dags'
+
             }
 
         }
@@ -29,9 +28,8 @@ pipeline {
 
             steps {
 
-                bat '''
-                xcopy publisher C:\\Users\\ADMIN\\Desktop\\airflow-project\\publisher\\ /E /I /Y
-                '''
+                bat 'xcopy publisher C:\\Users\\ADMIN\\Desktop\\airflow-project\\publisher /E /I /Y'
+
             }
 
         }
@@ -40,9 +38,8 @@ pipeline {
 
             steps {
 
-                bat '''
-                xcopy Dataflow C:\\Users\\ADMIN\\Desktop\\airflow-project\\Dataflow\\ /E /I /Y
-                '''
+                bat 'xcopy Dataflow C:\\Users\\ADMIN\\Desktop\\airflow-project\\Dataflow /E /I /Y'
+
             }
 
         }
